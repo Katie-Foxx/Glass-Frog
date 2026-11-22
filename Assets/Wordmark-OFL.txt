@@ -1,0 +1,4 @@
+Assets/Wordmark.ttf is "Old London" (Typographer Mediengestaltung, 2000). The font file carries only a copyright line
+("All rights reserved") and no licence text. It is embedded in the plugin binary: confirm with the rights holder or the
+site it came from that embedding and redistributing it in a product is allowed before a public release.
+Replace the file (same name) to change the typeface.
