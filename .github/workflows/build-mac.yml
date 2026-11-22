@@ -1,0 +1,38 @@
+name: Build macOS only
+# Manual only: it never runs on push, so it does not spend minutes by itself.
+# GitHub -> Actions -> "Build macOS only" -> Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+
+concurrency:
+  group: build-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure (universal arm64 + x86_64)
+        run: >
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DAM_BUILD_TESTS=OFF
+          -DAM_BUILD_STANDALONE=OFF "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Pack (tar keeps the bundles intact)
+        run: |
+          cd build/REF_artefacts/Release
+          ls -R . | head -40
+          tar -czf "$GITHUB_WORKSPACE/GlassFrog-macOS.tar.gz" VST3 AU CLAP
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: GlassFrog-macOS
+          if-no-files-found: error
+          path: GlassFrog-macOS.tar.gz
