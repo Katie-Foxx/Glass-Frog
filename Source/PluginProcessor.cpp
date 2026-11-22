@@ -10,11 +10,12 @@ AudioProcessorValueTreeState::ParameterLayout GlassFrogProcessor::createLayout()
     {
         p.push_back (std::make_unique<AudioParameterFloat> (ParameterID { id, 1 }, name, NormalisableRange<float> (lo, hi, 0.01f), def, AudioParameterFloatAttributes().withLabel (unit)));
     };
-    flt (gfid::reduction, "Reduction", 0.0f, 60.0f, 24.0f, " dB");
-    flt (gfid::sensitivity, "Sensitivity", 0.0f, 1.0f, 0.5f);
-    flt (gfid::air, "Air", 0.0f, 1.0f, 0.6f);
+    flt (gfid::reduction, "Reduction", 0.0f, 60.0f, 18.0f, " dB");
+    flt (gfid::sensitivity, "Sensitivity", 0.0f, 1.0f, 0.4f);
+    flt (gfid::air, "Air", 0.0f, 1.0f, 0.7f);
+    flt (gfid::body, "Body", 0.0f, 1.0f, 0.9f);
     flt (gfid::room, "Room", 0.0f, 1.0f, 0.0f);
-    flt (gfid::smooth, "Smooth", 0.0f, 1.0f, 0.5f);
+    flt (gfid::smooth, "Smooth", 0.0f, 1.0f, 0.6f);
     p.push_back (std::make_unique<AudioParameterBool> (ParameterID { gfid::adaptive, 1 }, "Adaptive", true));
     p.push_back (std::make_unique<AudioParameterBool> (ParameterID { gfid::delta, 1 }, "Listen to Removed", false));
     p.push_back (std::make_unique<AudioParameterBool> (ParameterID { gfid::power, 1 }, "Power", true));
@@ -50,7 +51,7 @@ void GlassFrogProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
         default: break;
     }
     gf::Settings s;
-    s.reductionDb = get (gfid::reduction); s.sensitivity = get (gfid::sensitivity); s.air = get (gfid::air);
+    s.reductionDb = get (gfid::reduction); s.sensitivity = get (gfid::sensitivity); s.air = get (gfid::air); s.body = get (gfid::body);
     s.room = get (gfid::room); s.smooth = get (gfid::smooth);
     s.adaptive = get (gfid::adaptive) > 0.5f; s.delta = get (gfid::delta) > 0.5f; s.enabled = get (gfid::power) > 0.5f;
     dn.setSettings (s);

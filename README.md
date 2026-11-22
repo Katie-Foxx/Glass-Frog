@@ -1,4 +1,4 @@
-# Glass Frog 0.1.0 (Lismok)
+# Glass Frog 0.2.0 (Lismok)
 
 Noise reduction for voice. It removes the noise floor of the microphone and of the room without darkening the top of the voice.
 Formats: VST3, AU (macOS), CLAP, Standalone. Mono or stereo. Built with JUCE 8.0.4 / CMake.
@@ -12,10 +12,12 @@ Formats: VST3, AU (macOS), CLAP, Standalone. Mono or stereo. Built with JUCE 8.0
 - Latency is fixed (reported to the host). Stereo is linked, so the image does not move.
 
 ## Controls
-Reduction (max dB), Sensitivity (how much counts as noise), Air, Room, Smooth (fewer artefacts vs faster), Adaptive, Power, Learn Noise, Clear Profile.
+Reduction (max dB, default 18), Sensitivity (how much counts as noise), Air (keeps the highs), Body (keeps the low harmonics of a deep voice), Room (off by default; delicate), Smooth (fewer artefacts vs faster), Adaptive, Power, Learn Noise, Clear Profile.
 
 ## Tests
 `g++ -std=c++17 -O2 Tests/gf_tests.cpp -o gf_t && ./gf_t [out_dir]` runs offline checks on a synthetic voice with room noise, hum and hiss and writes demo wavs.
 
 ## Not verified
 Nothing here has been run inside a DAW; only syntax checks against JUCE and the offline DSP tests.
+
+**Adaptive**: on = the noise floor is followed continuously (good for noise that changes). Off = it uses only the Learn Noise profile and never changes it (cleaner and more stable if the noise is constant and you learned a good room tone).

@@ -24,11 +24,12 @@ namespace gf
 {
 struct Settings
 {
-    double reductionDb = 24.0;     // maximum reduction, 0..60
-    double sensitivity = 0.5;      // 0..1: how much counts as noise
-    double air = 0.6;              // 0..1: keeps the top of the voice while it speaks
+    double reductionDb = 18.0;     // maximum reduction, 0..60
+    double sensitivity = 0.4;      // 0..1: how much counts as noise
+    double air = 0.7;              // 0..1: keeps the top of the voice while it speaks
+    double body = 0.9;             // 0..1: keeps the low harmonics (70-450 Hz) of a deep voice while it speaks
     double room = 0.0;             // 0..1: takes the tail of the room away
-    double smooth = 0.5;           // 0..1: fewer artefacts (slower) <-> faster
+    double smooth = 0.6;           // 0..1: fewer artefacts (slower) <-> faster
     bool adaptive = true;          // follow the noise floor while playing
     bool enabled = true;
     bool delta = false;
@@ -186,7 +187,9 @@ private:
         for (int k = 0; k < K; ++k)
         {
             const size_t kk = (size_t) k;
-            double n = Pa[kk] * bias;
+            const double fk = (double) k * sr / (double) N;
+            const double bk = bias + (bias - bias) * sstep ((fk - 250.0) / 300.0);          // lower bias in the voice's low range so a deep voice is not taken for noise
+            double n = Pa[kk] * bk;
             if (hasProf) n = settings.adaptive ? std::clamp (n, 0.7 * prof[kk], 4.0 * prof[kk]) : prof[kk];
             Pn[kk] = n;
         }
@@ -252,6 +255,16 @@ private:
             const double h = sstep ((f - 2500.0) / 5000.0);
             const double p = std::max (speech, speechHf * sstep ((f - 3500.0) / 1500.0));
             const double scale = 1.0 - 0.8 * settings.air * h * p;
+            G[kk] = std::max (gMin, std::exp (std::log (std::max (G[kk], 1.0e-9)) * scale));
+        }
+        // ---- Body: the same for the low harmonics of a deep voice
+        for (int k = 0; k < K; ++k)
+        {
+            const size_t kk = (size_t) k;
+            const double f = k * fBin;
+            const double w = sstep ((f - 55.0) / 40.0) * (1.0 - sstep ((f - 350.0) / 250.0));
+            if (w <= 0.0) continue;
+            const double scale = 1.0 - 1.0 * settings.body * w * speech;
             G[kk] = std::max (gMin, std::exp (std::log (std::max (G[kk], 1.0e-9)) * scale));
         }
         // decision-directed memory uses the gain that was really applied

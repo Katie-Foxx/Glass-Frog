@@ -8,6 +8,7 @@ namespace gfid
 inline constexpr const char* reduction = "reduction";
 inline constexpr const char* sensitivity = "sensitivity";
 inline constexpr const char* air = "air";
+inline constexpr const char* body = "body";
 inline constexpr const char* room = "room";
 inline constexpr const char* smooth = "smooth";
 inline constexpr const char* adaptive = "adaptive";
