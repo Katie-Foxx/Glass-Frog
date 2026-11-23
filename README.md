@@ -1,4 +1,8 @@
-# Maid Frog 0.3.0 (Lismok), formerly Glass Frog
+# Maid Frog 0.3.1 (Lismok), formerly Glass Frog
+
+## 0.3.1
+- Fixed: the noise-floor tracker could be "poisoned" by the near-empty first frames at the start of a file, leaving the floor ~25 dB too low and the plugin barely reducing noise for the first seconds. It now uses a windowed minimum and ignores digital silence and the first frames.
+- Checked on three real voice recordings (different mics): median reduction in the pauses is about 15 dB flat across bands at Reduction 18, and the voice keeps its tonal balance (mid vs high within 0.5 dB).
 
 Noise reduction for voice. It removes the noise floor of the microphone and of the room without darkening the top of the voice.
 Formats: VST3, AU (macOS), CLAP, Standalone. Mono or stereo. Built with JUCE 8.0.4 / CMake.

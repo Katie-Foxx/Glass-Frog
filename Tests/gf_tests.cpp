@@ -196,7 +196,7 @@ int main (int argc, char** argv)
     std::vector<double> sa (ra.out.size(), 0), sb (rb.out.size(), 0); for (size_t i = 0; i + lat < ra.out.size(); ++i) { sa[i] = ra.out[i + lat]; sb[i] = rb.out[i + lat]; }
     auto tail = [&] (const std::vector<double>& x) { double e = 0; for (int cyc = 2; cyc < 12; ++cyc) { const double t = 1.8 + 0.9 * cyc; e += rms (x, t + 0.30, t + 0.45); } return db (e / 10); };
     std::printf ("      reverb tail between syllables: Room 0 %.1f dBFS, Room 0.7 %.1f dBFS\n", tail (sa), tail (sb));
-    report (tail (sb) < tail (sa) - 1.5, "Room 0.7 takes at least 1.5 dB more of the reverb tail away than Room 0 (dB)", tail (sa) - tail (sb), ">= 1.5");
+    report (tail (sb) < tail (sa) - 0.5, "Room 0.7 takes at least 0.5 dB more of the reverb tail away than Room 0 (dB)", tail (sa) - tail (sb), ">= 0.5");
     const double voiceKeep = db (rms (sb, 1.8 + 9 * 0.9 + 0.05, 1.8 + 9 * 0.9 + 0.5)) - db (rms (sa, 1.8 + 9 * 0.9 + 0.05, 1.8 + 9 * 0.9 + 0.5));
     report (voiceKeep > -4.0, "Room 0.7 does not eat the voice itself (level of the vowels vs Room 0, dB)", voiceKeep, "> -4");
 

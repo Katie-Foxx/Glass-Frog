@@ -60,6 +60,8 @@ public:
         const double dt = (double) H / sr;
         histLen = std::max (2, (int) std::lround (0.06 / dt));
         hist.assign ((size_t) histLen * k, 0.0); histPos = 0;
+        subLen = std::max (4, (int) std::lround (0.3 / dt));
+        subMin.assign ((size_t) kSub * k, 0.0); curMin.assign (k, 0.0); subPos = 0; subCount = 0;
         hasProf = false; learning = false; learnCount = 0;
         reset();
         for (int d = 0; d < kDisplay; ++d)
@@ -75,7 +77,8 @@ public:
         std::fill (accL.begin(), accL.end(), 0.0); std::fill (accR.begin(), accR.end(), 0.0);
         std::fill (Gs.begin(), Gs.end(), 1.0); std::fill (prevSnrPow.begin(), prevSnrPow.end(), 0.0);
         std::fill (hist.begin(), hist.end(), 0.0); std::fill (Ps.begin(), Ps.end(), 0.0); std::fill (Pa.begin(), Pa.end(), 0.0);
-        w = 0; count = 0; frames = 0; dryL = dryR = 0.0; speech = 0.0; speechHf = 0.0;
+        std::fill (subMin.begin(), subMin.end(), 0.0); std::fill (curMin.begin(), curMin.end(), 0.0); subPos = 0; subCount = 0;
+        floorValid = false; w = 0; count = 0; frames = 0; dryL = dryR = 0.0; speech = 0.0; speechHf = 0.0;
     }
 
     void setSettings (const Settings& s) { settings = s; }
@@ -172,16 +175,39 @@ private:
             }
         }
 
-        // ---- adaptive floor: falls at once, rises slowly; lightly smoothed power in
-        const double rise = std::pow (10.0, 4.0 * dt / 10.0);                       // 4 dB per second
+        // ---- adaptive floor: minimum of the lightly smoothed power over the last ~2.4 s (8 sub-windows of 0.3 s).
+        // A window instead of "falls at once, rises slowly": digital silence, a fade-in or a gate at the start can not poison the floor for seconds.
         for (int k = 0; k < K; ++k)
         {
             const size_t kk = (size_t) k;
             Ps[kk] = first ? P[kk] : Ps[kk] + 0.35 * (P[kk] - Ps[kk]);
-            if (first || Pa[kk] <= 0.0) Pa[kk] = Ps[kk];
-            else if (Ps[kk] < Pa[kk]) Pa[kk] += 0.6 * (Ps[kk] - Pa[kk]);
-            else Pa[kk] *= rise;
         }
+        double frameE = 0.0;
+        for (int k = 4; k < K; ++k) frameE += Ps[(size_t) k];
+        const bool live = frames > N / H + 2 && frameE > 1.0e-12 * (double) K;                              // ignore digital silence: it says nothing about the noise
+        if (live)
+        {
+            const bool fresh = ! floorValid;
+            for (int k = 0; k < K; ++k)
+            {
+                const size_t kk = (size_t) k;
+                if (fresh) { curMin[kk] = Ps[kk]; for (int m = 0; m < kSub; ++m) subMin[(size_t) m * (size_t) K + kk] = Ps[kk]; }
+                else curMin[kk] = std::min (curMin[kk], Ps[kk]);
+            }
+            floorValid = true;
+            if (++subCount >= subLen)
+            {
+                subCount = 0; subPos = (subPos + 1) % kSub;
+                for (int k = 0; k < K; ++k) { subMin[(size_t) subPos * (size_t) K + (size_t) k] = curMin[(size_t) k]; curMin[(size_t) k] = Ps[(size_t) k]; }
+            }
+            for (int k = 0; k < K; ++k)
+            {
+                double m = curMin[(size_t) k];
+                for (int j = 0; j < kSub; ++j) m = std::min (m, subMin[(size_t) j * (size_t) K + (size_t) k]);
+                Pa[(size_t) k] = m;
+            }
+        }
+        else if (! floorValid) for (int k = 0; k < K; ++k) Pa[(size_t) k] = std::max (Ps[(size_t) k], 1.0e-18);
 
         // ---- noise estimate
         const double bias = 2.8;                                                       // a minimum follower sits below the mean
@@ -320,9 +346,12 @@ private:
     }
 
     double sr = 48000.0, dryL = 0.0, dryR = 0.0, speech = 0.0, speechHf = 0.0;
+    static constexpr int kSub = 8;
+    int subLen = 30, subPos = 0, subCount = 0;
+    bool floorValid = false;
     int N = 2048, H = 512, K = 1025, w = 0, count = 0, frames = 0, histLen = 6, histPos = 0, learnCount = 0;
     bool hasProf = false, learning = false, snapDirty = false, havePending = false;
-    std::vector<double> inL, inR, accL, accR, re, im, win, P, Ps, Pa, Pn, G, Gs, Gtmp, prevSnrPow, prof, profLive, lateP, hist, pr, Gtmp2;
+    std::vector<double> inL, inR, accL, accR, re, im, win, P, Ps, Pa, Pn, G, Gs, Gtmp, prevSnrPow, prof, profLive, lateP, hist, pr, Gtmp2, subMin, curMin;
     std::vector<std::complex<double>> tw;
     std::vector<int> rev;
     int dispLo[kDisplay] = {}, dispHi[kDisplay] = {};
