@@ -1,4 +1,4 @@
-# Maid Frog 0.3.1 (Lismok), formerly Glass Frog
+# Maid Frog 0.3.2 (Lismok), formerly Glass Frog
 
 ## 0.3.1
 - Fixed: the noise-floor tracker could be "poisoned" by the near-empty first frames at the start of a file, leaving the floor ~25 dB too low and the plugin barely reducing noise for the first seconds. It now uses a windowed minimum and ignores digital silence and the first frames.

@@ -118,50 +118,34 @@ public:
 private:
     struct Look : LookAndFeel_V4
     {
-        // The same knob as Rain Frog: contact shadow, skirt with grip flutes, light cap, pointer line with a faint halo.
+        // Classic Lismok knob: dark body, lilac progress arc around it, pink pointer. No inner cap circle.
         void drawRotarySlider (Graphics& g, int x, int y, int w, int h, float pos, float a0, float a1, Slider& s) override
         {
+            const float d = (float) std::min (w, h), r = d * 0.5f - 3.0f;
             const Point<float> c ((float) x + w * 0.5f, (float) y + h * 0.5f);
-            const float r = (float) std::min (w, h) * 0.5f - 2.0f;
-            const float angle = a0 + pos * (a1 - a0) + MathConstants<float>::pi;                 // JUCE angles run from 12 o'clock; we draw with sin/cos from the top
-            const Colour capColour (0xffeeeaf7);
+            const float ang = a0 + pos * (a1 - a0);
+            Path track, val;
+            track.addCentredArc (c.x, c.y, r, r, 0.0f, a0, a1, true);
+            val.addCentredArc (c.x, c.y, r, r, 0.0f, a0, ang, true);
+            g.setColour (panelEdge);
+            g.strokePath (track, PathStrokeType (3.0f, PathStrokeType::curved, PathStrokeType::rounded));
+            g.setColour (s.isMouseOverOrDragging() ? pink : lilac);
+            g.strokePath (val, PathStrokeType (3.0f, PathStrokeType::curved, PathStrokeType::rounded));
+            const float rb = r - 7.0f;
             g.setColour (Colours::black.withAlpha (0.5f));
-            g.fillEllipse (c.x - r, c.y - r + 3.0f, r * 2.0f, r * 2.0f);
-            g.setGradientFill (ColourGradient (Colour (0xff4a4658), c.x - r * 0.7f, c.y - r * 0.9f, Colour (0xff0c0b11), c.x + r * 0.7f, c.y + r * 0.9f, false));
-            g.fillEllipse (c.x - r, c.y - r, r * 2.0f, r * 2.0f);
-            const int numFlutes = 36;
-            for (int k = 0; k < numFlutes; ++k)
-            {
-                const float a = (float) k * MathConstants<float>::twoPi / (float) numFlutes;
-                const Point<float> u (std::sin (a), -std::cos (a));
-                const float lit = 0.5f + 0.5f * std::sin (a - 0.8f);
-                g.setColour (Colours::white.withAlpha (0.05f + 0.20f * lit));
-                g.drawLine ({ c + u * (r * 0.80f), c + u * (r * 0.985f) }, 1.3f);
-                const Point<float> v (std::sin (a + MathConstants<float>::pi / (float) numFlutes), -std::cos (a + MathConstants<float>::pi / (float) numFlutes));
-                g.setColour (Colours::black.withAlpha (0.55f));
-                g.drawLine ({ c + v * (r * 0.80f), c + v * (r * 0.985f) }, 1.1f);
-            }
-            g.setColour (Colours::black.withAlpha (0.6f));
-            g.drawEllipse (c.x - r, c.y - r, r * 2.0f, r * 2.0f, 1.0f);
-            const float cr = r * 0.70f;
-            g.setColour (Colours::black.withAlpha (0.45f));
-            g.fillEllipse (c.x - cr, c.y - cr + 1.5f, cr * 2.0f, cr * 2.0f);
-            g.setGradientFill (ColourGradient (capColour.brighter (0.30f), c.x - cr * 0.6f, c.y - cr * 0.8f, capColour.darker (0.45f), c.x + cr * 0.6f, c.y + cr * 0.8f, false));
-            g.fillEllipse (c.x - cr, c.y - cr, cr * 2.0f, cr * 2.0f);
-            g.setGradientFill (ColourGradient (Colours::white.withAlpha (0.55f), c.x - cr, c.y - cr, Colours::black.withAlpha (0.45f), c.x + cr, c.y + cr, false));
-            g.drawEllipse (c.x - cr + 0.7f, c.y - cr + 0.7f, cr * 2.0f - 1.4f, cr * 2.0f - 1.4f, 1.3f);
-            const Point<float> u (std::sin (angle - MathConstants<float>::pi), -std::cos (angle - MathConstants<float>::pi));
-            const float lw = std::max (2.0f, r * 0.075f);
-            g.setColour (Colours::black.withAlpha (0.35f));
-            g.drawLine ({ c + u * (r * 0.18f) + Point<float> (0.0f, 1.2f), c + u * (r * 0.97f) + Point<float> (0.0f, 1.2f) }, lw);
+            g.fillEllipse (c.x - rb, c.y - rb + 2.0f, rb * 2.0f, rb * 2.0f);
+            g.setGradientFill (ColourGradient (Colour (0xff4a4560), c.x - rb * 0.6f, c.y - rb * 0.8f, Colour (0xff1c1a27), c.x + rb * 0.7f, c.y + rb * 0.9f, false));
+            g.fillEllipse (c.x - rb, c.y - rb, rb * 2.0f, rb * 2.0f);
+            g.setColour (panelEdge.brighter (0.2f));
+            g.drawEllipse (c.x - rb, c.y - rb, rb * 2.0f, rb * 2.0f, 1.0f);
+            const Point<float> u (std::cos (ang - MathConstants<float>::halfPi), std::sin (ang - MathConstants<float>::halfPi));
             for (float e : { 5.0f, 2.8f })
             {
                 g.setColour (pink.withAlpha (0.06f));
-                g.drawLine ({ c + u * (r * 0.18f), c + u * (r * 0.97f) }, lw + e);
+                g.drawLine ({ c + u * (rb * 0.18f), c + u * (rb * 0.97f) }, 2.6f + e);
             }
             g.setColour (pink);
-            g.drawLine ({ c + u * (r * 0.18f), c + u * (r * 0.97f) }, lw);
-            juce::ignoreUnused (s);
+            g.drawLine ({ c + u * (rb * 0.18f), c + u * (rb * 0.97f) }, 2.6f);
         }
     } look;
     Slider slider;
