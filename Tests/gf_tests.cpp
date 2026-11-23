@@ -154,6 +154,26 @@ int main (int argc, char** argv)
     std::printf ("      80-450 Hz in speech vs the clean voice: Body 0.9 %.2f dB, Body 0 %.2f dB\n", lbRatio, lbNo);
     report (std::abs (lbRatio) < 1.5, "Body 0.9: the low harmonics of the voice stay within 1.5 dB of the clean one (dB)", lbRatio, "|x| < 1.5");
 
+    // low cut: a steady 30 Hz rumble goes away faster than with the cut off, and 100 Hz does not move
+    {
+        auto toneOut = [&] (double fr, double cut)
+        {
+            Denoiser d; d.prepare (SR); Settings st = def; st.lowCut = cut; d.setSettings (st);
+            double ei = 0, eo = 0; const int n = (int) (SR * 2.0);
+            for (int i = 0; i < n; ++i)
+            {
+                const double x = 0.05 * std::sin (2.0 * PI * fr * i / SR) + 1e-5 * (double) ((i * 7919) % 1000 - 500) / 500.0;
+                double a2 = x, b2 = x; d.processFrame (a2, b2);
+                if (i > (int) (SR * 0.2)) ei += x * x;
+                if (i > (int) (SR * 0.2) + d.latency()) eo += a2 * a2;
+            }
+            return 10 * std::log10 (eo / ei);
+        };
+        const double r30on = toneOut (30.0, 55.0), r30off = toneOut (30.0, 0.0), r100on = toneOut (100.0, 55.0), r100off = toneOut (100.0, 0.0);
+        std::printf ("      tone level change: 30 Hz cut on %.1f dB / off %.1f dB; 100 Hz cut on %.1f dB / off %.1f dB\n", r30on, r30off, r100on, r100off);
+        report (r30off - r30on > 8.0, "Low Cut 55 Hz takes a 30 Hz rumble down at least 8 dB more than with it off (dB)", r30off - r30on, "> 8");
+        report (std::abs (r100on - r100off) < 0.5, "Low Cut 55 Hz does not touch 100 Hz (dB)", r100on - r100off, "|x| < 0.5");
+    }
     // learned profile only (adaptive off)
     Settings lrn = def; lrn.adaptive = false;
     auto c = run (sc.noisy, lrn, 1.4);

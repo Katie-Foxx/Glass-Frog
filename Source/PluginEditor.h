@@ -18,7 +18,7 @@ private:
 
     GlassFrogProcessor& proc;
     std::unique_ptr<Pill> learnBtn, clearBtn, adaptBtn, deltaBtn, powerBtn;
-    std::unique_ptr<Knob> reduction, sensitivity, air, body, room, smooth;
+    std::unique_ptr<Knob> reduction, sensitivity, air, body, lowcut, room, smooth;
     juce::Font wordmark;
     juce::Image frog;
     juce::Rectangle<int> modView, modCtl;

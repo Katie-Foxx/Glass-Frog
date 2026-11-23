@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(GlassFrog VERSION 0.2.0 LANGUAGES C CXX)
+project(GlassFrogB VERSION 0.3.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,9 +28,9 @@ endif()
 juce_add_plugin(REF
     COMPANY_NAME                "Lismok"
     PLUGIN_MANUFACTURER_CODE    Lsmk
-    PLUGIN_CODE                 Gfrg
-    BUNDLE_ID                   com.lismok.glassfrog
-    PRODUCT_NAME                "Glass Frog"
+    PLUGIN_CODE                 GfrB
+    BUNDLE_ID                   com.lismok.glassfrogb
+    PRODUCT_NAME                "Glass Frog B"
     FORMATS                     ${AM_FORMATS}
     IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            FALSE
@@ -80,7 +80,7 @@ if(AM_BUILD_CLAP)
         GIT_SHALLOW    ON)
     FetchContent_MakeAvailable(clap-juce-extensions)
     clap_juce_extensions_plugin(TARGET REF
-        CLAP_ID "com.lismok.glassfrog"
+        CLAP_ID "com.lismok.glassfrogb"
         CLAP_FEATURES audio-effect restoration stereo mono)
 endif()
 

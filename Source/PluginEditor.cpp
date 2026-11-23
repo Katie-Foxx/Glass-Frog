@@ -176,9 +176,10 @@ GlassFrogEditor::GlassFrogEditor (GlassFrogProcessor& p)
     sensitivity = std::make_unique<Knob> (a, gfid::sensitivity, "Sensitivity", "", 2);
     air = std::make_unique<Knob> (a, gfid::air, "Air", "", 2);
     body = std::make_unique<Knob> (a, gfid::body, "Body", "", 2);
+    lowcut = std::make_unique<Knob> (a, gfid::lowcut, "Low Cut", " Hz", 0);
     room = std::make_unique<Knob> (a, gfid::room, "Room", "", 2);
     smooth = std::make_unique<Knob> (a, gfid::smooth, "Smooth", "", 2);
-    for (auto* k : { reduction.get(), sensitivity.get(), air.get(), body.get(), room.get(), smooth.get() }) addAndMakeVisible (*k);
+    for (auto* k : { reduction.get(), sensitivity.get(), air.get(), body.get(), lowcut.get(), room.get(), smooth.get() }) addAndMakeVisible (*k);
 
     setSize (820, 600);
     startTimerHz (25);
@@ -219,9 +220,9 @@ void GlassFrogEditor::resized()
 {
     modView = { 24, 96, 772, 300 };
     modCtl = { 24, 408, 772, 176 };
-    const int kw = (modCtl.getWidth() - 32 - 170) / 6;
-    Knob* ks[6] = { reduction.get(), sensitivity.get(), air.get(), body.get(), room.get(), smooth.get() };
-    for (int i = 0; i < 6; ++i) ks[i]->setBounds (modCtl.getX() + 16 + i * kw, modCtl.getY() + 34, kw, modCtl.getHeight() - 40);
+    const int kw = (modCtl.getWidth() - 32 - 170) / 7;
+    Knob* ks[7] = { reduction.get(), sensitivity.get(), air.get(), body.get(), lowcut.get(), room.get(), smooth.get() };
+    for (int i = 0; i < 7; ++i) ks[i]->setBounds (modCtl.getX() + 16 + i * kw, modCtl.getY() + 34, kw, modCtl.getHeight() - 40);
     const int bx = modCtl.getRight() - 16 - 150;
     learnBtn->setBounds (bx, modCtl.getY() + 38, 150, 28);
     clearBtn->setBounds (bx, modCtl.getY() + 72, 150, 26);
@@ -241,9 +242,9 @@ void GlassFrogEditor::paint (Graphics& g)
     g.drawText ("Lismok", 28, 14, 170, 56, Justification::centredLeft);
     g.setColour (panelEdge);
     g.fillRect (198, 24, 2, 38);
-    glowText (g, "Glass Frog", Rectangle<float> (214, 14, 300, 56), Justification::centredLeft, textC, 1.0f);
+    glowText (g, "Glass Frog B", Rectangle<float> (214, 14, 300, 56), Justification::centredLeft, textC, 1.0f);
     g.setColour (textC);
-    g.drawText ("Glass Frog", 214, 14, 300, 56, Justification::centredLeft);
+    g.drawText ("Glass Frog B", 214, 14, 300, 56, Justification::centredLeft);
     if (frog.isValid())
         g.drawImage (frog, Rectangle<float> ((float) getWidth() - 120.0f, 10.0f, 92.0f, 69.0f), RectanglePlacement::centred);
 

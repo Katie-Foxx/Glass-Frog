@@ -9,6 +9,7 @@ inline constexpr const char* reduction = "reduction";
 inline constexpr const char* sensitivity = "sensitivity";
 inline constexpr const char* air = "air";
 inline constexpr const char* body = "body";
+inline constexpr const char* lowcut = "lowcut";
 inline constexpr const char* room = "room";
 inline constexpr const char* smooth = "smooth";
 inline constexpr const char* adaptive = "adaptive";
@@ -33,7 +34,7 @@ public:
 
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
-    const juce::String getName() const override { return "Glass Frog"; }
+    const juce::String getName() const override { return "Glass Frog B"; }
     bool acceptsMidi() const override { return false; }
     bool producesMidi() const override { return false; }
     double getTailLengthSeconds() const override { return 0.0; }
