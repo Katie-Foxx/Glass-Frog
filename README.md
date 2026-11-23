@@ -1,4 +1,4 @@
-# Glass Frog B 0.3.0 (Lismok): test version to compare against Glass Frog 0.2.0
+# Maid Frog 0.3.0 (Lismok), formerly Glass Frog
 
 Noise reduction for voice. It removes the noise floor of the microphone and of the room without darkening the top of the voice.
 Formats: VST3, AU (macOS), CLAP, Standalone. Mono or stereo. Built with JUCE 8.0.4 / CMake.
@@ -26,4 +26,4 @@ Nothing here has been run inside a DAW; only syntax checks against JUCE and the 
 - **Low Cut** (new): rumble below 55 Hz is removed on its own, so the plugin no longer has to decide between rumble and voice down there.
 - **Body** now protects from ~48 Hz (full at ~76 Hz) up to ~600 Hz: covers the fundamental of a very deep voice.
 - **Air** now starts at 700 Hz at about half strength (full from 2.5 kHz): protects the mid and the consonants.
-- It installs next to the 0.2.0 plugin: it has its own name (Glass Frog B), its own plugin code and bundle ID, so both can sit in the same project to compare.
+- It installs next to the 0.2.0 plugin: it has its own name (Maid Frog), its own plugin code and bundle ID, so both can sit in the same project to compare.

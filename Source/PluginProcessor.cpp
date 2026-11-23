@@ -3,7 +3,7 @@
 
 using namespace juce;
 
-AudioProcessorValueTreeState::ParameterLayout GlassFrogProcessor::createLayout()
+AudioProcessorValueTreeState::ParameterLayout MaidFrogProcessor::createLayout()
 {
     std::vector<std::unique_ptr<RangedAudioParameter>> p;
     auto flt = [&] (const char* id, const char* name, float lo, float hi, float def, const char* unit = "")
@@ -23,13 +23,13 @@ AudioProcessorValueTreeState::ParameterLayout GlassFrogProcessor::createLayout()
     return { p.begin(), p.end() };
 }
 
-GlassFrogProcessor::GlassFrogProcessor()
+MaidFrogProcessor::MaidFrogProcessor()
     : AudioProcessor (BusesProperties().withInput ("Input", AudioChannelSet::stereo(), true).withOutput ("Output", AudioChannelSet::stereo(), true)),
-      apvts (*this, nullptr, "GlassFrogB", createLayout())
+      apvts (*this, nullptr, "MaidFrog", createLayout())
 {
 }
 
-void GlassFrogProcessor::prepareToPlay (double sampleRate, int)
+void MaidFrogProcessor::prepareToPlay (double sampleRate, int)
 {
     sr = sampleRate;
     dn.prepare (sr);
@@ -38,7 +38,7 @@ void GlassFrogProcessor::prepareToPlay (double sampleRate, int)
     learningFlag = false; hasProfileFlag = (int) storedProfile.size() == dn.bins();
 }
 
-void GlassFrogProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
+void MaidFrogProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
 {
     ScopedNoDenormals nd;
     const int n = buffer.getNumSamples(), ch = buffer.getNumChannels();
@@ -71,9 +71,9 @@ void GlassFrogProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
     hasProfileFlag = hp;
 }
 
-AudioProcessorEditor* GlassFrogProcessor::createEditor() { return new GlassFrogEditor (*this); }
+AudioProcessorEditor* MaidFrogProcessor::createEditor() { return new MaidFrogEditor (*this); }
 
-void GlassFrogProcessor::getStateInformation (MemoryBlock& dest)
+void MaidFrogProcessor::getStateInformation (MemoryBlock& dest)
 {
     auto st = apvts.copyState();
     auto v = dn.hasProfile() ? dn.profile() : std::vector<float>();
@@ -81,7 +81,7 @@ void GlassFrogProcessor::getStateInformation (MemoryBlock& dest)
     if (! v.empty()) st.setProperty ("profile", Base64::toBase64 (v.data(), v.size() * sizeof (float)), nullptr);
     if (auto xml = st.createXml()) copyXmlToBinary (*xml, dest);
 }
-void GlassFrogProcessor::setStateInformation (const void* data, int size)
+void MaidFrogProcessor::setStateInformation (const void* data, int size)
 {
     if (auto xml = getXmlFromBinary (data, size))
         if (xml->hasTagName (apvts.state.getType()))
@@ -104,4 +104,4 @@ void GlassFrogProcessor::setStateInformation (const void* data, int size)
         }
 }
 
-AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new GlassFrogProcessor(); }
+AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new MaidFrogProcessor(); }

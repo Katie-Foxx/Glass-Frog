@@ -1,5 +1,5 @@
 #pragma once
-// Glass Frog: noise reduction for voice. It takes the noise floor of the microphone and of the room away without darkening the top of the voice.
+// Maid Frog: noise reduction for voice. It takes the noise floor of the microphone and of the room away without darkening the top of the voice.
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "DSP/Denoise.h"
 
@@ -17,11 +17,11 @@ inline constexpr const char* delta = "delta";
 inline constexpr const char* power = "power";
 }
 
-class GlassFrogProcessor : public juce::AudioProcessor
+class MaidFrogProcessor : public juce::AudioProcessor
 {
 public:
-    GlassFrogProcessor();
-    ~GlassFrogProcessor() override = default;
+    MaidFrogProcessor();
+    ~MaidFrogProcessor() override = default;
 
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override {}
@@ -34,7 +34,7 @@ public:
 
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
-    const juce::String getName() const override { return "Glass Frog B"; }
+    const juce::String getName() const override { return "Maid Frog"; }
     bool acceptsMidi() const override { return false; }
     bool producesMidi() const override { return false; }
     double getTailLengthSeconds() const override { return 0.0; }
@@ -63,5 +63,5 @@ private:
     std::atomic<bool> learningFlag { false }, hasProfileFlag { false };
     std::vector<float> storedProfile;
     double sr = 48000.0;
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GlassFrogProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MaidFrogProcessor)
 };

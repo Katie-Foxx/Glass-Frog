@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(GlassFrogB VERSION 0.3.0 LANGUAGES C CXX)
+project(MaidFrog VERSION 0.3.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,9 +28,9 @@ endif()
 juce_add_plugin(REF
     COMPANY_NAME                "Lismok"
     PLUGIN_MANUFACTURER_CODE    Lsmk
-    PLUGIN_CODE                 GfrB
-    BUNDLE_ID                   com.lismok.glassfrogb
-    PRODUCT_NAME                "Glass Frog B"
+    PLUGIN_CODE                 Mfrg
+    BUNDLE_ID                   com.lismok.maidfrog
+    PRODUCT_NAME                "Maid Frog"
     FORMATS                     ${AM_FORMATS}
     IS_SYNTH                    FALSE
     NEEDS_MIDI_INPUT            FALSE
@@ -52,7 +52,7 @@ target_compile_definitions(REF PUBLIC
     JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0)
 
-# Optional assets: Assets/Wordmark.ttf and Assets/RainFrog.png (a placeholder frog: replace it with the Glass Frog drawing, same file name)
+# Optional assets: Assets/Wordmark.ttf and Assets/RainFrog.png (a placeholder frog: replace it with the Maid Frog drawing, same file name)
 set(AM_FONT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Assets/Wordmark.ttf")
 set(AM_FROG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Assets/RainFrog.png")
 set(AM_ASSETS "")
@@ -80,7 +80,7 @@ if(AM_BUILD_CLAP)
         GIT_SHALLOW    ON)
     FetchContent_MakeAvailable(clap-juce-extensions)
     clap_juce_extensions_plugin(TARGET REF
-        CLAP_ID "com.lismok.glassfrogb"
+        CLAP_ID "com.lismok.maidfrog"
         CLAP_FEATURES audio-effect restoration stereo mono)
 endif()
 

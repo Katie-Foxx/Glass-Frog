@@ -1,4 +1,4 @@
-// Glass Frog offline tests: a synthetic voice (harmonics with formants, fricatives, breath) in a room with noise, hum and hiss.
+// Maid Frog offline tests: a synthetic voice (harmonics with formants, fricatives, breath) in a room with noise, hum and hiss.
 #include "../Source/DSP/Denoise.h"
 #include <chrono>
 #include <cstdio>
@@ -104,7 +104,7 @@ static double snr (const std::vector<double>& est, const std::vector<double>& re
 
 int main (int argc, char** argv)
 {
-    std::printf ("Glass Frog tests\n");
+    std::printf ("Maid Frog tests\n");
     Denoiser probe; probe.prepare (SR);
     report (probe.latency() == 2048, "latency at 48 kHz is 2048 samples (about 43 ms)", probe.latency(), "= 2048");
     const int lat = 2048;
@@ -225,8 +225,8 @@ int main (int argc, char** argv)
         auto wr = [&] (const std::string& fn, const std::vector<double>& x, int skip) { FILE* f = std::fopen (fn.c_str(), "wb"); const int n = (int) x.size() - skip; const int dsz = n * 2; const int sr = (int) SR, br = sr * 2; const short ch = 1, ba = 2, bits = 16, fmt = 1; const int fs = 16;
             std::fwrite ("RIFF", 1, 4, f); int t = 36 + dsz; std::fwrite (&t, 4, 1, f); std::fwrite ("WAVEfmt ", 1, 8, f); std::fwrite (&fs, 4, 1, f); std::fwrite (&fmt, 2, 1, f); std::fwrite (&ch, 2, 1, f); std::fwrite (&sr, 4, 1, f); std::fwrite (&br, 4, 1, f); std::fwrite (&ba, 2, 1, f); std::fwrite (&bits, 2, 1, f); std::fwrite ("data", 1, 4, f); std::fwrite (&dsz, 4, 1, f);
             for (int i = 0; i < n; ++i) { const short s = (short) std::lround (std::clamp (x[i + skip] * 1.0, -1.0, 1.0) * 32767.0); std::fwrite (&s, 2, 1, f); } std::fclose (f); };
-        const std::string d0 = argv[1]; wr (d0 + "/glassfrog_demo_noisy.wav", sc.noisy, 0); wr (d0 + "/glassfrog_demo_processed.wav", a.out, lat); wr (d0 + "/glassfrog_demo_removed_delta.wav", d.out, lat);
-        wr (d0 + "/glassfrog_demo_clean_reference.wav", sc.clean, 0);
+        const std::string d0 = argv[1]; wr (d0 + "/maidfrog_demo_noisy.wav", sc.noisy, 0); wr (d0 + "/maidfrog_demo_processed.wav", a.out, lat); wr (d0 + "/maidfrog_demo_removed_delta.wav", d.out, lat);
+        wr (d0 + "/maidfrog_demo_clean_reference.wav", sc.clean, 0);
     }
     std::printf ("\n%d checks, %d failed\n", total, fails);
     return fails ? 1 : 0;

@@ -58,7 +58,7 @@ LismokLook& lismokLook() { static LismokLook l; return l; }
 }
 
 // ---- pill ------------------------------------------------------------------------------------------------------
-class GlassFrogEditor::Pill : public Component
+class MaidFrogEditor::Pill : public Component
 {
 public:
     std::function<void()> onClick;
@@ -87,14 +87,14 @@ private:
 };
 
 // ---- knob ------------------------------------------------------------------------------------------------------
-class GlassFrogEditor::Knob : public Component
+class MaidFrogEditor::Knob : public Component
 {
 public:
     Knob (AudioProcessorValueTreeState& s, const char* id, const String& name, const String& suffix = {}, int decimals = 2) : title (name)
     {
         slider.setSliderStyle (Slider::RotaryVerticalDrag);
         slider.setTextBoxStyle (Slider::NoTextBox, true, 0, 0);
-        slider.setRotaryParameters (MathConstants<float>::pi * 1.2f, MathConstants<float>::pi * 2.8f, true);
+        slider.setRotaryParameters (MathConstants<float>::pi * 1.25f, MathConstants<float>::pi * 2.75f, true);
         slider.setLookAndFeel (&look);
         slider.setDoubleClickReturnValue (true, s.getParameter (id)->convertFrom0to1 (s.getParameter (id)->getDefaultValue()));
         slider.setMouseDragSensitivity (180);
@@ -118,34 +118,50 @@ public:
 private:
     struct Look : LookAndFeel_V4
     {
+        // The same knob as Rain Frog: contact shadow, skirt with grip flutes, light cap, pointer line with a faint halo.
         void drawRotarySlider (Graphics& g, int x, int y, int w, int h, float pos, float a0, float a1, Slider& s) override
         {
-            const float d = (float) std::min (w, h), r = d * 0.5f - 3.0f;
             const Point<float> c ((float) x + w * 0.5f, (float) y + h * 0.5f);
-            const float ang = a0 + pos * (a1 - a0);
-            // value arc around the knob
-            Path track, val;
-            track.addCentredArc (c.x, c.y, r, r, 0.0f, a0, a1, true);
-            val.addCentredArc (c.x, c.y, r, r, 0.0f, a0, ang, true);
-            g.setColour (panelEdge);
-            g.strokePath (track, PathStrokeType (3.0f, PathStrokeType::curved, PathStrokeType::rounded));
-            g.setColour (s.isMouseOverOrDragging() ? pink : lilac);
-            g.strokePath (val, PathStrokeType (3.0f, PathStrokeType::curved, PathStrokeType::rounded));
-            // body
-            const float rb = r - 7.0f;
+            const float r = (float) std::min (w, h) * 0.5f - 2.0f;
+            const float angle = a0 + pos * (a1 - a0) + MathConstants<float>::pi;                 // JUCE angles run from 12 o'clock; we draw with sin/cos from the top
+            const Colour capColour (0xffeeeaf7);
             g.setColour (Colours::black.withAlpha (0.5f));
-            g.fillEllipse (c.x - rb, c.y - rb + 2.0f, rb * 2.0f, rb * 2.0f);
-            g.setGradientFill (ColourGradient (Colour (0xff4a4560), c.x - rb * 0.6f, c.y - rb * 0.8f, Colour (0xff1c1a27), c.x + rb * 0.7f, c.y + rb * 0.9f, false));
-            g.fillEllipse (c.x - rb, c.y - rb, rb * 2.0f, rb * 2.0f);
-            g.setColour (panelEdge.brighter (0.2f));
-            g.drawEllipse (c.x - rb, c.y - rb, rb * 2.0f, rb * 2.0f, 1.0f);
-            const float rc = rb * 0.72f;
-            g.setGradientFill (ColourGradient (Colour (0xff8d86a6), c.x - rc * 0.6f, c.y - rc * 0.8f, Colour (0xff35314a), c.x + rc * 0.6f, c.y + rc * 0.8f, false));
-            g.fillEllipse (c.x - rc, c.y - rc, rc * 2.0f, rc * 2.0f);
-            // pointer
-            const Point<float> u (std::cos (ang - MathConstants<float>::halfPi), std::sin (ang - MathConstants<float>::halfPi));
+            g.fillEllipse (c.x - r, c.y - r + 3.0f, r * 2.0f, r * 2.0f);
+            g.setGradientFill (ColourGradient (Colour (0xff4a4658), c.x - r * 0.7f, c.y - r * 0.9f, Colour (0xff0c0b11), c.x + r * 0.7f, c.y + r * 0.9f, false));
+            g.fillEllipse (c.x - r, c.y - r, r * 2.0f, r * 2.0f);
+            const int numFlutes = 36;
+            for (int k = 0; k < numFlutes; ++k)
+            {
+                const float a = (float) k * MathConstants<float>::twoPi / (float) numFlutes;
+                const Point<float> u (std::sin (a), -std::cos (a));
+                const float lit = 0.5f + 0.5f * std::sin (a - 0.8f);
+                g.setColour (Colours::white.withAlpha (0.05f + 0.20f * lit));
+                g.drawLine ({ c + u * (r * 0.80f), c + u * (r * 0.985f) }, 1.3f);
+                const Point<float> v (std::sin (a + MathConstants<float>::pi / (float) numFlutes), -std::cos (a + MathConstants<float>::pi / (float) numFlutes));
+                g.setColour (Colours::black.withAlpha (0.55f));
+                g.drawLine ({ c + v * (r * 0.80f), c + v * (r * 0.985f) }, 1.1f);
+            }
+            g.setColour (Colours::black.withAlpha (0.6f));
+            g.drawEllipse (c.x - r, c.y - r, r * 2.0f, r * 2.0f, 1.0f);
+            const float cr = r * 0.70f;
+            g.setColour (Colours::black.withAlpha (0.45f));
+            g.fillEllipse (c.x - cr, c.y - cr + 1.5f, cr * 2.0f, cr * 2.0f);
+            g.setGradientFill (ColourGradient (capColour.brighter (0.30f), c.x - cr * 0.6f, c.y - cr * 0.8f, capColour.darker (0.45f), c.x + cr * 0.6f, c.y + cr * 0.8f, false));
+            g.fillEllipse (c.x - cr, c.y - cr, cr * 2.0f, cr * 2.0f);
+            g.setGradientFill (ColourGradient (Colours::white.withAlpha (0.55f), c.x - cr, c.y - cr, Colours::black.withAlpha (0.45f), c.x + cr, c.y + cr, false));
+            g.drawEllipse (c.x - cr + 0.7f, c.y - cr + 0.7f, cr * 2.0f - 1.4f, cr * 2.0f - 1.4f, 1.3f);
+            const Point<float> u (std::sin (angle - MathConstants<float>::pi), -std::cos (angle - MathConstants<float>::pi));
+            const float lw = std::max (2.0f, r * 0.075f);
+            g.setColour (Colours::black.withAlpha (0.35f));
+            g.drawLine ({ c + u * (r * 0.18f) + Point<float> (0.0f, 1.2f), c + u * (r * 0.97f) + Point<float> (0.0f, 1.2f) }, lw);
+            for (float e : { 5.0f, 2.8f })
+            {
+                g.setColour (pink.withAlpha (0.06f));
+                g.drawLine ({ c + u * (r * 0.18f), c + u * (r * 0.97f) }, lw + e);
+            }
             g.setColour (pink);
-            g.drawLine ({ c + u * (rc * 0.25f), c + u * (rb * 0.97f) }, 2.4f);
+            g.drawLine ({ c + u * (r * 0.18f), c + u * (r * 0.97f) }, lw);
+            juce::ignoreUnused (s);
         }
     } look;
     Slider slider;
@@ -154,7 +170,7 @@ private:
 };
 
 // ---- editor -------------------------------------------------------------------------------------------------------
-GlassFrogEditor::GlassFrogEditor (GlassFrogProcessor& p)
+MaidFrogEditor::MaidFrogEditor (MaidFrogProcessor& p)
     : AudioProcessorEditor (&p), proc (p), wordmark (makeWordmark (46.0f))
 {
     setLookAndFeel (&lismokLook());
@@ -185,9 +201,9 @@ GlassFrogEditor::GlassFrogEditor (GlassFrogProcessor& p)
     startTimerHz (25);
     timerCallback();
 }
-GlassFrogEditor::~GlassFrogEditor() { stopTimer(); setLookAndFeel (nullptr); }
+MaidFrogEditor::~MaidFrogEditor() { stopTimer(); setLookAndFeel (nullptr); }
 
-void GlassFrogEditor::toggleParam (const char* id)
+void MaidFrogEditor::toggleParam (const char* id)
 {
     if (auto* p = proc.apvts.getParameter (id))
     {
@@ -197,7 +213,7 @@ void GlassFrogEditor::toggleParam (const char* id)
     }
 }
 
-void GlassFrogEditor::timerCallback()
+void MaidFrogEditor::timerCallback()
 {
     const bool learning = proc.isLearning();
     learnBtn->setLabel (learning ? "Learning... press to finish" : "Learn Noise"); learnBtn->setLit (learning);
@@ -216,7 +232,7 @@ void GlassFrogEditor::timerCallback()
     repaint (modCtl.getX(), modCtl.getY(), modCtl.getWidth(), 34);
 }
 
-void GlassFrogEditor::resized()
+void MaidFrogEditor::resized()
 {
     modView = { 24, 96, 772, 300 };
     modCtl = { 24, 408, 772, 176 };
@@ -231,7 +247,7 @@ void GlassFrogEditor::resized()
     deltaBtn->setBounds (bx, modCtl.getY() + 136, 150, 26);
 }
 
-void GlassFrogEditor::paint (Graphics& g)
+void MaidFrogEditor::paint (Graphics& g)
 {
     g.fillAll (chassis);
     g.setGradientFill (ColourGradient (lilacDeep.withAlpha (0.20f), 0.0f, 0.0f, Colours::transparentBlack, 0.0f, 170.0f, false));
@@ -242,11 +258,11 @@ void GlassFrogEditor::paint (Graphics& g)
     g.drawText ("Lismok", 28, 14, 170, 56, Justification::centredLeft);
     g.setColour (panelEdge);
     g.fillRect (198, 24, 2, 38);
-    glowText (g, "Glass Frog B", Rectangle<float> (214, 14, 300, 56), Justification::centredLeft, textC, 1.0f);
+    glowText (g, "Maid Frog", Rectangle<float> (214, 14, 300, 56), Justification::centredLeft, textC, 1.0f);
     g.setColour (textC);
-    g.drawText ("Glass Frog B", 214, 14, 300, 56, Justification::centredLeft);
+    g.drawText ("Maid Frog", 214, 14, 300, 56, Justification::centredLeft);
     if (frog.isValid())
-        g.drawImage (frog, Rectangle<float> ((float) getWidth() - 120.0f, 10.0f, 92.0f, 69.0f), RectanglePlacement::centred);
+        g.drawImage (frog, Rectangle<float> ((float) getWidth() - 132.0f, 6.0f, 108.0f, 76.0f), RectanglePlacement::centred);
 
     auto module = [&] (Rectangle<int> r, const String& title)
     {
