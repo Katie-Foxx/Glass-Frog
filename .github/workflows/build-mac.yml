@@ -28,11 +28,11 @@ jobs:
         run: |
           cd build/REF_artefacts/Release
           ls -R . | head -40
-          tar -czf "$GITHUB_WORKSPACE/GlassFrog-macOS.tar.gz" VST3 AU CLAP
+          tar -czf "$GITHUB_WORKSPACE/GlassFrogB-macOS.tar.gz" VST3 AU CLAP
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: GlassFrog-macOS
+          name: GlassFrogB-macOS
           if-no-files-found: error
-          path: GlassFrog-macOS.tar.gz
+          path: GlassFrogB-macOS.tar.gz
