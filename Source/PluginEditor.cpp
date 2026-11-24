@@ -43,6 +43,25 @@ void glowStroke (Graphics& g, const Path& p, Colour c, float width, float streng
     }
 }
 
+// Rain Frog's recipe for lit boxes and button outlines: a few widening, very faint layers behind the shape.
+void glowBox (Graphics& g, Rectangle<float> r, float corner, Colour c, float strength = 1.0f, float spread = 4.5f)
+{
+    for (int i = 4; i >= 1; --i)
+    {
+        const float e = spread * (float) i / 4.0f;
+        g.setColour (c.withAlpha (0.028f * strength));
+        g.fillRoundedRectangle (r.expanded (e), corner + e);
+    }
+}
+void glowOutline (Graphics& g, Rectangle<float> r, float corner, Colour c, float strength = 1.0f)
+{
+    for (float w : { 7.0f, 5.0f, 3.0f })
+    {
+        g.setColour (c.withAlpha (0.022f * strength));
+        g.drawRoundedRectangle (r, corner, w);
+    }
+}
+
 // Pop-up lists as in Rain Frog: panel colour, purple outline, pink selection.
 struct LismokLook : public LookAndFeel_V4
 {
@@ -262,10 +281,12 @@ void MaidFrogEditor::paint (Graphics& g)
 
     auto module = [&] (Rectangle<int> r, const String& title)
     {
+        glowOutline (g, r.toFloat().reduced (0.5f), 14.0f, lilac, 0.5f);
         g.setColour (panel);
         g.fillRoundedRectangle (r.toFloat(), 14.0f);
         g.setColour (panelEdge);
         g.drawRoundedRectangle (r.toFloat().reduced (0.5f), 14.0f, 1.0f);
+        glowBox (g, { (float) r.getX() + 14.0f, (float) r.getY() + 14.0f, 3.0f, 14.0f }, 1.5f, lilac, 0.9f, 3.5f);
         g.setColour (lilacDeep);
         g.fillRoundedRectangle ((float) r.getX() + 14.0f, (float) r.getY() + 14.0f, 3.0f, 14.0f, 1.5f);
         g.setFont (FontOptions (14.0f, Font::bold));
@@ -275,6 +296,15 @@ void MaidFrogEditor::paint (Graphics& g)
     };
     module (modView, "Spectrum");
     module (modCtl, "Reduction");
+
+    // button glows, drawn behind the buttons (the same recipe as Rain Frog): lit ones glow pink, the others have a faint outline
+    for (auto* c : getChildren())
+        if (auto* b = dynamic_cast<Pill*> (c))
+            if (b->isVisible())
+            {
+                if (b->lit) glowBox (g, b->getBounds().toFloat().reduced (1.0f), 8.0f, pink, 0.8f, 4.0f);
+                else glowOutline (g, b->getBounds().toFloat().reduced (1.0f), 8.0f, lilac);
+            }
 
     // legend and status
     g.setFont (FontOptions (11.5f));
