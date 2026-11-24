@@ -33,6 +33,16 @@ void glowText (Graphics& g, const String& t, Rectangle<float> area, Justificatio
     for (int k = 0; k < 8; ++k) g.drawText (t, area.translated (dx[k] * 1.4f, dy[k] * 1.4f), j);
 }
 
+// Lit line or arc: three wider, very faint strokes under the sharp one (same soft light as Rain Frog's lit lines).
+void glowStroke (Graphics& g, const Path& p, Colour c, float width, float strength = 1.0f)
+{
+    for (float e : { 8.0f, 5.0f, 2.6f })
+    {
+        g.setColour (c.withAlpha (0.05f * strength));
+        g.strokePath (p, PathStrokeType (width + e, PathStrokeType::curved, PathStrokeType::rounded));
+    }
+}
+
 // Pop-up lists as in Rain Frog: panel colour, purple outline, pink selection.
 struct LismokLook : public LookAndFeel_V4
 {
@@ -129,6 +139,7 @@ private:
             val.addCentredArc (c.x, c.y, r, r, 0.0f, a0, ang, true);
             g.setColour (panelEdge);
             g.strokePath (track, PathStrokeType (3.0f, PathStrokeType::curved, PathStrokeType::rounded));
+            if (pos > 0.004f) glowStroke (g, val, s.isMouseOverOrDragging() ? pink : lilac, 3.0f, 1.6f);
             g.setColour (s.isMouseOverOrDragging() ? pink : lilac);
             g.strokePath (val, PathStrokeType (3.0f, PathStrokeType::curved, PathStrokeType::rounded));
             const float rb = r - 7.0f;
@@ -139,11 +150,7 @@ private:
             g.setColour (panelEdge.brighter (0.2f));
             g.drawEllipse (c.x - rb, c.y - rb, rb * 2.0f, rb * 2.0f, 1.0f);
             const Point<float> u (std::cos (ang - MathConstants<float>::halfPi), std::sin (ang - MathConstants<float>::halfPi));
-            for (float e : { 5.0f, 2.8f })
-            {
-                g.setColour (pink.withAlpha (0.06f));
-                g.drawLine ({ c + u * (rb * 0.18f), c + u * (rb * 0.97f) }, 2.6f + e);
-            }
+            { Path pl; pl.startNewSubPath (c + u * (rb * 0.18f)); pl.lineTo (c + u * (rb * 0.97f)); glowStroke (g, pl, pink, 2.6f, 2.2f); }
             g.setColour (pink);
             g.drawLine ({ c + u * (rb * 0.18f), c + u * (rb * 0.97f) }, 2.6f);
         }
@@ -240,11 +247,16 @@ void MaidFrogEditor::paint (Graphics& g)
     glowText (g, "Lismok", Rectangle<float> (28, 14, 170, 56), Justification::centredLeft, lilac, 1.4f);
     g.setColour (lilac);
     g.drawText ("Lismok", 28, 14, 170, 56, Justification::centredLeft);
+    // the divider sits exactly halfway between the end of "Lismok" and the start of the name
+    GlyphArrangement ga;
+    ga.addLineOfText (makeWordmark (46.0f), "Lismok", 0.0f, 0.0f);
+    const float wmW = ga.getBoundingBox (0, -1, true).getWidth();
+    const float divX = 28.0f + wmW + 16.0f, nameX = divX + 2.0f + 16.0f;
     g.setColour (panelEdge);
-    g.fillRect (198, 24, 2, 38);
-    glowText (g, "Maid Frog", Rectangle<float> (214, 14, 300, 56), Justification::centredLeft, textC, 1.0f);
+    g.fillRect (divX, 24.0f, 2.0f, 38.0f);
+    glowText (g, "Maid Frog", Rectangle<float> (nameX, 14, 300, 56), Justification::centredLeft, textC, 1.0f);
     g.setColour (textC);
-    g.drawText ("Maid Frog", 214, 14, 300, 56, Justification::centredLeft);
+    g.drawText ("Maid Frog", Rectangle<float> (nameX, 14, 300, 56), Justification::centredLeft);
     if (frog.isValid())
         g.drawImage (frog, Rectangle<float> ((float) getWidth() - 132.0f, 6.0f, 108.0f, 76.0f), RectanglePlacement::centred);
 
@@ -300,6 +312,7 @@ void MaidFrogEditor::paint (Graphics& g)
             g.setGradientFill (ColourGradient (c.withAlpha (0.35f), 0.0f, gr.getY(), c.withAlpha (0.02f), 0.0f, gr.getBottom(), false));
             g.fillPath (f);
         }
+        glowStroke (g, p, c, 1.6f, 1.0f);
         g.setColour (c); g.strokePath (p, PathStrokeType (1.6f, PathStrokeType::curved));
     };
     curve (smoothIn, 0.0f, true, lilac);
@@ -311,6 +324,7 @@ void MaidFrogEditor::paint (Graphics& g)
         const float x = xOf (i), y = gr.getY() + gr.getHeight() * std::clamp (-smoothG[i] / 60.0f, 0.0f, 1.0f);
         if (i == 0) gp.startNewSubPath (x, y); else gp.lineTo (x, y);
     }
+    glowStroke (g, gp, mint, 1.4f, 0.8f);
     g.setColour (mint.withAlpha (0.9f)); g.strokePath (gp, PathStrokeType (1.4f, PathStrokeType::curved));
     g.setColour (mint.withAlpha (0.7f)); g.setFont (FontOptions (10.5f));
     g.drawText ("0 dB", (int) gr.getX() + 4, (int) gr.getY() + 1, 40, 12, Justification::centredLeft);
