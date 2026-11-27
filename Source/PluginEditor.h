@@ -12,6 +12,12 @@ public:
 private:
     class Pill;
     class Knob;
+    class Library;
+    void openLibrary();
+    void mouseUp (const juce::MouseEvent&) override;
+    void mouseMove (const juce::MouseEvent&) override;
+    juce::Rectangle<int> frogArea() const { return { getWidth() - 132, 6, 108, 90 }; }
+    std::unique_ptr<Library> library;
     void timerCallback() override;
     void toggleParam (const char* id);
     bool getBool (const char* id) const { return proc.apvts.getRawParameterValue (id)->load() > 0.5f; }

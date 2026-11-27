@@ -31,3 +31,11 @@ Nothing here has been run inside a DAW; only syntax checks against JUCE and the 
 - **Body** now protects from ~48 Hz (full at ~76 Hz) up to ~600 Hz: covers the fundamental of a very deep voice.
 - **Air** now starts at 700 Hz at about half strength (full from 2.5 kHz): protects the mid and the consonants.
 - It installs next to the 0.2.0 plugin: it has its own name (Maid Frog), its own plugin code and bundle ID, so both can sit in the same project to compare.
+
+## 0.4.0 - Noise library
+- Click the frog: a panel opens with a library of saved background noises (your SM7B, NT1, a room...). Learn a noise as usual, open the panel and press **Save Current** with a name.
+- The library lives in files (Application Support / AppData > Lismok > Maid Frog > Noise Profiles), so every project and every instance sees it. The profile in use also travels with the project.
+- **< >** step through the list, click a row to select. **- / +** (or drag the Level box; Shift = fine, double-click = 0) raise or lower the stored noise in dB, and the level is kept with that noise.
+- **Match Level** listens to the noise floor of the current take (play it, it needs some pauses) and sets the stored noise to that level, because the gain is never exactly the same. Checked offline within about 0.2 dB.
+- A profile saved at one sample rate is converted when used at another.
+- Not tested in a DAW: only syntax-checked against JUCE and offline DSP tests.

@@ -43,6 +43,7 @@ public:
 
     static int frameFor (double sr) noexcept { int n = 256; while ((double) n < sr * 0.04 && n < 16384) n <<= 1; return n; }
     int latency() const noexcept { return N; }
+    int frameSize() const noexcept { return N; }
 
     void prepare (double sampleRate)
     {
@@ -56,7 +57,7 @@ public:
         for (int i = 0; i < N; ++i) { int x = i, r = 0; for (int b = 0; b < bits; ++b) { r = (r << 1) | (x & 1); x >>= 1; } rev[(size_t) i] = r; }
         const size_t k = (size_t) K;
         P.assign (k, 0.0); Ps.assign (k, 0.0); Pa.assign (k, 0.0); Pn.assign (k, 0.0); G.assign (k, 1.0); Gs.assign (k, 1.0); Gtmp.assign (k, 1.0);
-        prevSnrPow.assign (k, 0.0); pr.assign (k, 0.0); Gtmp2.assign (k, 1.0); prof.assign (k, 0.0); profLive.assign (k, 0.0); lateP.assign (k, 0.0);
+        scratch.assign (k, 0.0); prevSnrPow.assign (k, 0.0); pr.assign (k, 0.0); Gtmp2.assign (k, 1.0); prof.assign (k, 0.0); profLive.assign (k, 0.0); lateP.assign (k, 0.0);
         const double dt = (double) H / sr;
         histLen = std::max (2, (int) std::lround (0.06 / dt));
         hist.assign ((size_t) histLen * k, 0.0); histPos = 0;
@@ -95,6 +96,47 @@ public:
         if ((int) v.size() == K) { pending = v; havePending = true; }
     }
     int bins() const noexcept { return K; }
+    int learnedFrames() const noexcept { return learnCount; }
+
+    // Match: how many dB the noise floor that is being heard now (the adaptive tracker, 100 Hz - 9 kHz, median over the bins) lies above the
+    // profile in use. NaN while there is no profile or no floor has been measured yet. Audio thread.
+    double floorOffsetDb() noexcept
+    {
+        if (! hasProf || ! floorValid || scratch.empty()) return std::nan ("");
+        const double fBin = sr / (double) N;
+        int n = 0;
+        for (int k = 1; k < K; ++k)
+        {
+            const double f = k * fBin;
+            if (f < 100.0 || f > 9000.0) continue;
+            const double a = std::max (Pa[(size_t) k] * kFloorBias, 1.0e-18), b = std::max (prof[(size_t) k], 1.0e-18);
+            scratch[(size_t) n++] = 10.0 * std::log10 (a / b);
+        }
+        if (n < 8) return std::nan ("");
+        std::nth_element (scratch.begin(), scratch.begin() + n / 2, scratch.begin() + n);
+        return scratch[(size_t) (n / 2)] + 3.1;      // calibrated on stationary noise: the follower reads about 3.1 dB low
+    }
+
+    // A profile taken at another frame size / sample rate (and with a level trim in dB) for this one: interpolated in dB along the frequency axis.
+    // The power per bin of a noise of fixed density goes with sr / N, which is what the factor accounts for.
+    static std::vector<float> convertProfile (const std::vector<float>& src, int nOld, double srOld, int nNew, double srNew, double gainDb)
+    {
+        std::vector<float> out;
+        if (src.size() < 2 || nOld < 2 || nNew < 2 || srNew <= 0.0) return out;
+        if (srOld <= 0.0) srOld = srNew;
+        const int kNew = nNew / 2 + 1, kOld = (int) src.size();
+        out.resize ((size_t) kNew);
+        const double scale = (srNew * nOld) / ((double) nNew * srOld) * std::pow (10.0, gainDb / 10.0);
+        for (int k = 0; k < kNew; ++k)
+        {
+            const double x = std::clamp ((double) k * srNew / nNew * nOld / srOld, 0.0, (double) (kOld - 1));
+            const int i = std::min ((int) x, kOld - 2);
+            const double fr = x - i;
+            const double a = std::log (std::max ((double) src[(size_t) i], 1.0e-20)), b = std::log (std::max ((double) src[(size_t) i + 1], 1.0e-20));
+            out[(size_t) k] = (float) (std::exp (a + fr * (b - a)) * scale);
+        }
+        return out;
+    }
 
     double delayedL() const noexcept { return dryL; }
     double delayedR() const noexcept { return dryR; }
@@ -210,7 +252,7 @@ private:
         else if (! floorValid) for (int k = 0; k < K; ++k) Pa[(size_t) k] = std::max (Ps[(size_t) k], 1.0e-18);
 
         // ---- noise estimate
-        const double bias = 2.8;                                                       // a minimum follower sits below the mean
+        const double bias = kFloorBias;                                                // a minimum follower sits below the mean
         for (int k = 0; k < K; ++k)
         {
             const size_t kk = (size_t) k;
@@ -346,12 +388,13 @@ private:
     }
 
     double sr = 48000.0, dryL = 0.0, dryR = 0.0, speech = 0.0, speechHf = 0.0;
+    static constexpr double kFloorBias = 2.8;
     static constexpr int kSub = 8;
     int subLen = 30, subPos = 0, subCount = 0;
     bool floorValid = false;
     int N = 2048, H = 512, K = 1025, w = 0, count = 0, frames = 0, histLen = 6, histPos = 0, learnCount = 0;
     bool hasProf = false, learning = false, snapDirty = false, havePending = false;
-    std::vector<double> inL, inR, accL, accR, re, im, win, P, Ps, Pa, Pn, G, Gs, Gtmp, prevSnrPow, prof, profLive, lateP, hist, pr, Gtmp2, subMin, curMin;
+    std::vector<double> scratch, inL, inR, accL, accR, re, im, win, P, Ps, Pa, Pn, G, Gs, Gtmp, prevSnrPow, prof, profLive, lateP, hist, pr, Gtmp2, subMin, curMin;
     std::vector<std::complex<double>> tw;
     std::vector<int> rev;
     int dispLo[kDisplay] = {}, dispHi[kDisplay] = {};
