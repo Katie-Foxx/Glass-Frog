@@ -16,7 +16,7 @@ private:
     void openLibrary();
     void mouseUp (const juce::MouseEvent&) override;
     void mouseMove (const juce::MouseEvent&) override;
-    juce::Rectangle<int> frogArea() const { return { getWidth() - 132, 6, 108, 90 }; }
+    juce::Rectangle<int> frogArea() const { return { getWidth() - 132, 6, 108, 76 }; }
     std::unique_ptr<Library> library;
     void timerCallback() override;
     void toggleParam (const char* id);

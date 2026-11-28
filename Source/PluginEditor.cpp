@@ -515,13 +515,6 @@ void MaidFrogEditor::paint (Graphics& g)
     g.drawText ("Maid Frog", Rectangle<float> (nameX, 14, 300, 56), Justification::centredLeft);
     if (frog.isValid())
         g.drawImage (frog, Rectangle<float> ((float) getWidth() - 132.0f, 6.0f, 108.0f, 76.0f), RectanglePlacement::centred);
-    {
-        // the frog opens the noise library: the name of the noise in use sits under it
-        const String nm = proc.hasActive() ? proc.activeName() : String ("Noise library");
-        g.setFont (FontOptions (11.0f, Font::bold));
-        g.setColour (proc.hasActive() ? pink : textDim);
-        g.drawFittedText (nm + "  v", getWidth() - 140, 78, 124, 14, Justification::centred, 1);
-    }
 
     auto module = [&] (Rectangle<int> r, const String& title)
     {

@@ -39,3 +39,6 @@ Nothing here has been run inside a DAW; only syntax checks against JUCE and the 
 - **Match Level** listens to the noise floor of the current take (play it, it needs some pauses) and sets the stored noise to that level, because the gain is never exactly the same. Checked offline within about 0.2 dB.
 - A profile saved at one sample rate is converted when used at another.
 - Not tested in a DAW: only syntax-checked against JUCE and offline DSP tests.
+
+## 0.4.1
+- Removed the text under the frog (the frog still opens the noise library).
